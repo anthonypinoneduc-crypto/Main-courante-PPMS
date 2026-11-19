@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Main courante – Cellule de crise</title>
+<meta name="theme-color" content="#1b2a4a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Main courante">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root{
+    --navy:#1b2a4a; --navy-2:#2b3d63; --red:#c8342d; --red-d:#a3271f;
+    --bg:#f3f5f8; --card:#fff; --ink:#18202e; --muted:#5d6779; --line:#dfe3ea;
+    --green:#1f7a4d; --amber:#a86400;
+    --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+    --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:16px;line-height:1.4}
+  button{font:inherit;cursor:pointer;border:0}
+  input,textarea,select{font:inherit;font-size:17px;color:var(--ink)}
+  .hidden{display:none!important}
+
+  /* Barre du haut */
+  header.top{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;
+    padding:calc(var(--st) + 10px) calc(var(--sr) + 14px) 10px calc(var(--sl) + 14px);
+    display:flex;align-items:center;gap:10px}
+  header.top h1{font-size:18px;margin:0;font-weight:700;flex:1;letter-spacing:.2px}
+  header.top .clock{font-variant-numeric:tabular-nums;font-size:15px;opacity:.85}
+  .iconbtn{background:rgba(255,255,255,.12);color:#fff;width:40px;height:40px;border-radius:12px;
+    display:grid;place-items:center}
+  .iconbtn svg{width:22px;height:22px}
+
+  main{padding:14px calc(var(--sr) + 14px) calc(var(--sb) + 110px) calc(var(--sl) + 14px);max-width:760px;margin:0 auto}
+  .card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(20,30,50,.06),0 4px 14px rgba(20,30,50,.05);margin-bottom:14px}
+  .muted{color:var(--muted)}
+  .small{font-size:14px}
+  h2{font-size:17px;margin:0 0 10px}
+
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    min-height:52px;border-radius:14px;font-weight:650;font-size:17px;padding:12px 16px}
+  .btn-red{background:var(--red);color:#fff}
+  .btn-red:active{background:var(--red-d)}
+  .btn-navy{background:var(--navy);color:#fff}
+  .btn-navy:active{background:var(--navy-2)}
+  .btn-ghost{background:#e8ecf2;color:var(--navy)}
+  .btn-ghost:active{background:#d9dfe8}
+  .btn:disabled{opacity:.45}
+  .btn-sm{min-height:38px;font-size:15px;padding:8px 12px;border-radius:10px;width:auto}
+
+  /* Accueil */
+  .hero{text-align:center;padding:26px 16px}
+  .hero .ico{width:64px;height:64px;margin:0 auto 10px;border-radius:18px;background:#e8ecf2;display:grid;place-items:center}
+  .hero p{margin:6px 0 18px}
+  .arch{display:flex;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+  .arch:first-of-type{border-top:0}
+  .arch .t{flex:1;min-width:0}
+  .arch .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* Crise active */
+  .crisis{background:var(--red);color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:14px}
+  .crisis .lbl{font-size:13px;text-transform:uppercase;letter-spacing:.8px;opacity:.85;font-weight:600;display:flex;align-items:center;gap:8px}
+  .dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .crisis .ttl{font-size:19px;font-weight:700;margin:4px 0 6px}
+  .crisis .meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;opacity:.95;font-variant-numeric:tabular-nums}
+  .who{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .chip-who{background:#e8ecf2;color:var(--navy);border-radius:999px;padding:7px 12px;font-weight:600;font-size:15px}
+  textarea.entry{width:100%;min-height:110px;border:1.5px solid var(--line);border-radius:12px;padding:12px;resize:vertical;background:#fbfcfd}
+  textarea.entry:focus{outline:none;border-color:var(--navy);background:#fff}
+  .stamp{font-size:13px;color:var(--muted);margin:6px 2px 10px;font-variant-numeric:tabular-nums}
+
+  .entries{list-style:none;margin:0;padding:0}
+  .entries li{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line)}
+  .entries li:first-child{border-top:0}
+  .entries .time{font-weight:700;font-variant-numeric:tabular-nums;color:var(--navy);font-size:15px;min-width:62px}
+  .entries .num{font-size:12px;color:var(--muted);font-weight:500}
+  .entries .txt{white-space:pre-wrap;word-wrap:break-word}
+  .entries .by{font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px}
+  .entries .sys .txt{font-weight:650}
+  .entries .rect .txt{font-style:italic}
+  .tag{font-size:12px;border-radius:6px;padding:1px 6px;font-weight:600}
+  .tag-r{background:#fff1dc;color:var(--amber)}
+  .tag-s{background:#e8ecf2;color:var(--navy)}
+  .linkbtn{background:none;color:var(--navy);font-size:13px;font-weight:600;padding:2px 0;text-decoration:underline}
+
+  /* Barre d'actions en bas */
+  .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:15;background:rgba(243,245,248,.94);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);
+    padding:10px calc(var(--sr) + 14px) calc(var(--sb) + 10px) calc(var(--sl) + 14px)}
+  .actionbar .in{max-width:760px;margin:0 auto;display:flex;gap:10px}
+
+  /* Fenêtres (feuilles) */
+  .overlay{position:fixed;inset:0;background:rgba(15,22,38,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+  .sheet{background:#fff;width:100%;max-width:620px;border-radius:20px 20px 0 0;max-height:92vh;overflow:auto;
+    padding:18px calc(var(--sr) + 18px) calc(var(--sb) + 18px) calc(var(--sl) + 18px);animation:up .18s ease-out}
+  @media (min-width:700px){.overlay{align-items:center}.sheet{border-radius:20px}}
+  @keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+  .sheet h3{margin:0 0 6px;font-size:19px}
+  .sheet p{margin:6px 0 12px}
+  .field{margin:12px 0}
+  .field label{display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:var(--muted)}
+  .field input,.field select,.field textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfd}
+  .field textarea{min-height:90px;resize:vertical}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chips button{background:#eef1f5;color:var(--ink);border-radius:999px;padding:10px 14px;font-size:15px;border:1.5px solid transparent}
+  .chips button.on{background:#fdecea;border-color:var(--red);color:var(--red-d);font-weight:650}
+  .row{display:flex;gap:10px;margin-top:16px}
+  .quote{background:#f3f5f8;border-left:3px solid var(--navy);padding:8px 12px;border-radius:8px;white-space:pre-wrap;font-size:15px}
+  .addr{display:flex;gap:8px;align-items:center;background:#f3f5f8;border-radius:12px;padding:10px 12px;margin:8px 0}
+  .addr code{flex:1;font-size:15px;word-break:break-all}
+  ol.steps{padding-left:20px;margin:8px 0}
+  ol.steps li{margin:4px 0}
+
+  .banner{border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+  .banner-info{background:#e7eefb;color:#1d3a73}
+  .banner-warn{background:#fff1dc;color:#6e4300}
+
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sb) + 96px);z-index:80;background:#18202e;color:#fff;
+    padding:10px 16px;border-radius:12px;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:88vw;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Main courante</h1>
+  <span class="clock" id="clock">--:--:--</span>
+  <button class="iconbtn" id="btnSettings" aria-label="Réglages">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+</header>
+
+<main>
+  <div id="bannerStorage" class="banner banner-warn hidden">
+    ⚠️ Ce navigateur ne permet pas d'enregistrer les données : elles seront perdues si la page est fermée. Générez le rapport PDF avant de quitter.
+  </div>
+  <div id="bannerInstall" class="banner banner-info hidden">
+    Pour installer l'application : touchez <b>Partager</b> <span aria-hidden="true">⎋</span> puis <b>« Sur l'écran d'accueil »</b>.
+  </div>
+
+  <!-- Accueil : aucune crise en cours -->
+  <section id="viewHome">
+    <div class="card hero">
+      <div class="ico">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#1b2a4a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 2h6v4H9z"/><path d="M9 11h6M9 15h4"/></svg>
+      </div>
+      <h2 style="margin:0">Aucune crise en cours</h2>
+      <p class="muted">Ouvrez une main courante dès le déclenchement de la cellule de crise. Chaque saisie est datée et horodatée automatiquement.</p>
+      <button class="btn btn-red" id="btnOpen">Ouvrir une main courante</button>
+    </div>
+    <div class="card" id="archCard">
+      <h2>Main courantes clôturées</h2>
+      <div id="archList"></div>
+    </div>
+  </section>
+
+  <!-- Crise en cours -->
+  <section id="viewCrisis" class="hidden">
+    <div class="crisis">
+      <div class="lbl"><span class="dot"></span>Cellule de crise activée</div>
+      <div class="ttl" id="cTitle"></div>
+      <div class="meta"><span id="cStart"></span><span id="cElapsed"></span><span id="cCount"></span></div>
+    </div>
+
+    <div class="card">
+      <div class="who">
+        <span class="muted small">Saisi par</span>
+        <button class="chip-who" id="btnWho"></button>
+      </div>
+      <textarea class="entry" id="txtEntry" placeholder="Décrivez l'événement, la décision ou l'information reçue…"></textarea>
+      <div class="stamp" id="stampHint"></div>
+      <button class="btn btn-navy" id="btnSave">Enregistrer dans la main courante</button>
+    </div>
+
+    <div class="card">
+      <h2>Chronologie</h2>
+      <p class="muted small" style="margin-top:-4px">Les entrées ne peuvent être ni modifiées ni supprimées. Pour corriger, utilisez « Rectifier » : la correction est ajoutée à la suite, horodatée.</p>
+      <ul class="entries" id="entryList"></ul>
+    </div>
+  </section>
+</main>
+
+<div class="actionbar hidden" id="actionBar">
+  <div class="in">
+    <button class="btn btn-ghost" id="btnReport">Rapport PDF</button>
+    <button class="btn btn-red" id="btnClose">Clôturer</button>
+  </div>
+</div>
+
+<div id="sheetHost"></div>
+
+<script src="jspdf.umd.min.js"></script>
+<script src="jspdf.plugin.autotable.min.js"></script>
+<script>
+(() => {
+"use strict";
+
+/* ---------- Constantes ---------- */
+const ROLES = ["Principale", "Principal adjoint", "Secrétaire générale", "CPE"];
+const TYPES = [
+  "PPMS – Confinement",
+  "PPMS – Attentat-intrusion",
+  "Évacuation incendie",
+  "Accident / malaise grave",
+  "Disparition d'élève",
+  "Intempérie / risque majeur",
+  "Autre"
+];
+const KEY = "mainCourante.v1";
+const DEFAULT_ETAB = "Collège Léon Gambetta – Riedisheim";
+
+/* ---------- Stockage (sur l'appareil uniquement) ---------- */
+let storageOk = true;
+const mem = {};
+function load() {
+  try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; }
+  catch (e) { storageOk = false; return mem[KEY] ? JSON.parse(mem[KEY]) : null; }
+}
+function persist() {
+  const s = JSON.stringify(state);
+  try { localStorage.setItem(KEY, s); }
+  catch (e) { storageOk = false; mem[KEY] = s; showStorageBanner(); }
+}
+function draftKey() { return KEY + ".draft." + (state.active ? state.active.id : ""); }
+function getDraft() { try { return localStorage.getItem(draftKey()) || ""; } catch (e) { return ""; } }
+function setDraft(v) { try { v ? localStorage.setItem(draftKey(), v) : localStorage.removeItem(draftKey()); } catch (e) {} }
+
+let state = load() || { settings: { etab: DEFAULT_ETAB, email: "", auteur: "" }, active: null, archives: [] };
+state.settings = Object.assign({ etab: DEFAULT_ETAB, email: "", auteur: "" }, state.settings || {});
+state.archives = state.archives || [];
+try { localStorage.setItem(KEY + ".test", "1"); localStorage.removeItem(KEY + ".test"); } catch (e) { storageOk = false; }
+if (navigator.storage && navigator.storage.persist) { navigator.storage.persist().catch(() => {}); }
+
+/* ---------- Outils ---------- */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad = (n) => String(n).padStart(2, "0");
+const fmtTime = (iso) => { const d = new Date(iso); return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()); };
+const fmtHM = (iso) => { const d = new Date(iso); return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+const fmtDate = (iso) => { const d = new Date(iso); return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear(); };
+const fmtLongDate = (iso) => new Date(iso).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+function fmtDur(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+  return (h ? h + " h " : "") + pad(m) + " min " + pad(r) + " s";
+}
+function fmtDurShort(ms) {
+  const m = Math.max(0, Math.round(ms / 60000));
+  const h = Math.floor(m / 60);
+  return h ? h + " h " + pad(m % 60) + " min" : m + " min";
+}
+
+let toastTimer;
+function toast(msg) {
+  let t = document.querySelector(".toast");
+  if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); }
+  t.textContent = msg; t.style.display = "block";
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => (t.style.display = "none"), 2600);
+}
+
+/* ---------- Fenêtres ---------- */
+function openSheet(html, onMount) {
+  const host = $("sheetHost");
+  host.innerHTML = '<div class="overlay"><div class="sheet" role="dialog" aria-modal="true">' + html + "</div></div>";
+  const ov = host.firstChild;
+  ov.addEventListener("click", (e) => { if (e.target === ov && !ov.dataset.locked) closeSheet(); });
+  if (onMount) onMount(ov.firstChild);
+  return ov.firstChild;
+}
+function closeSheet() { $("sheetHost").innerHTML = ""; }
+
+/* ---------- Horloge ---------- */
+function tick() {
+  const now = new Date();
+  $("clock").textContent = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
+  if (state.active) {
+    $("cElapsed").textContent = "Durée " + fmtDur(now - new Date(state.active.debut));
+    $("stampHint").textContent = "Sera horodaté automatiquement : " + fmtDate(now.toISOString()) + " à " + fmtTime(now.toISOString());
+  }
+}
+setInterval(tick, 1000);
+
+/* ---------- Rendu ---------- */
+function render() {
+  const a = state.active;
+  $("viewHome").classList.toggle("hidden", !!a);
+  $("viewCrisis").classList.toggle("hidden", !a);
+  $("actionBar").classList.toggle("hidden", !a);
+  if (a) renderCrisis(); else renderHome();
+  tick();
+}
+
+function renderHome() {
+  const list = $("archList");
+  if (!state.archives.length) {
+    list.innerHTML = '<p class="muted small" style="margin:0">Aucune pour le moment. Les main courantes clôturées restent ici, sur cet appareil, jusqu\'à ce que vous les supprimiez.</p>';
+    return;
+  }
+  list.innerHTML = state.archives.slice().reverse().map((m) =>
+    '<div class="arch"><div class="t"><b>' + esc(m.titre) + '</b><span class="muted small">' +
+    fmtDate(m.debut) + " · " + fmtHM(m.debut) + "–" + fmtHM(m.fin) + " · " + m.entrees.length + " entrées</span></div>" +
+    '<button class="btn btn-navy btn-sm" data-send="' + m.id + '">PDF</button>' +
+    '<button class="btn btn-ghost btn-sm" data-del="' + m.id + '" aria-label="Supprimer">✕</button></div>'
+  ).join("");
+}
+
+function renderCrisis() {
+  const a = state.active;
+  $("cTitle").textContent = a.titre;
+  $("cStart").textContent = "Ouverte le " + fmtDate(a.debut) + " à " + fmtHM(a.debut);
+  $("cCount").textContent = a.entrees.length + (a.entrees.length > 1 ? " entrées" : " entrée");
+  $("btnWho").textContent = (state.settings.auteur || "À choisir") + " ▾";
+  const rectified = {};
+  a.entrees.forEach((e) => { if (e.kind === "rectif") (rectified[e.ref] = rectified[e.ref] || []).push(e); });
+  const items = a.entrees.map((e, i) => ({ e, n: i + 1 })).reverse();
+  $("entryList").innerHTML = items.map(({ e, n }) => {
+    const cls = e.kind === "rectif" ? "rect" : (e.kind === "ouverture" || e.kind === "cloture") ? "sys" : "";
+    const tag = e.kind === "rectif" ? '<span class="tag tag-r">Rectificatif de l\'entrée n° ' + e.ref + "</span>"
+      : (e.kind === "ouverture") ? '<span class="tag tag-s">Ouverture</span>' : "";
+    const rect = rectified[n] ? '<span class="tag tag-r">Rectifiée à ' + rectified[n].map((r) => fmtHM(r.t)).join(", ") + "</span>" : "";
+    const canRect = e.kind === "note" || e.kind === "rectif";
+    return '<li class="' + cls + '"><div><div class="time">' + fmtTime(e.t) + '</div><div class="num">n° ' + n + "</div></div>" +
+      '<div><div class="txt">' + esc(e.texte) + '</div><div class="by"><span>' + esc(e.auteur) + "</span>" + tag + rect +
+      (canRect ? '<button class="linkbtn" data-rect="' + n + '">Rectifier</button>' : "") + "</div></div></li>";
+  }).join("");
+}
+
+/* ---------- Actions ---------- */
+function addEntry(texte, kind, ref) {
+  const e = { id: uid(), t: new Date().toISOString(), auteur: state.settings.auteur || "Non précisé", texte, kind };
+  if (ref) e.ref = ref;
+  state.active.entrees.push(e);
+  persist();
+  return e;
+}
+
+function openCrisis() {
+  let type = "";
+  openSheet(
+    '<h3>Ouvrir une main courante</h3><p class="muted">L\'heure d\'ouverture sera enregistrée automatiquement.</p>' +
+    '<div class="field"><label>Nature de l\'événement</label><div class="chips" id="chips">' +
+    TYPES.map((t) => '<button type="button" data-t="' + esc(t) + '">' + esc(t) + "</button>").join("") + "</div></div>" +
+    '<div class="field"><label for="prec">Précision (facultatif)</label><input id="prec" placeholder="Ex. : bâtiment B, exercice, alerte reçue de la mairie…"></div>' +
+    '<div class="row"><button class="btn btn-ghost" id="cancel">Annuler</button><button class="btn btn-red" id="go" disabled>Ouvrir</button></div>',
+    (s) => {
+      s.querySelector("#chips").addEventListener("click", (ev) => {
+        const b = ev.target.closest("button"); if (!b) return;
+        s.querySelectorAll("#chips button").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on"); type = b.dataset.t; s.querySelector("#go").disabled = false;
+      });
+      s.querySelector("#cancel").onclick = closeSheet;
+      s.querySelector("#go").onclick = () => {
+        const prec = s.querySelector("#prec").value.trim();
+        const titre = type + (prec ? " – " + prec : "");
+        const now = new Date().toISOString();
+        state.active = { id: uid(), type, precision: prec, titre, debut: now, fin: null, entrees: [] };
+        addEntry("Ouverture de la main courante – " + titre + ". Activation de la cellule de crise.", "ouverture");
+        closeSheet(); render();
+        setTimeout(() => $("txtEntry").focus(), 150);
+      };
+    }
+  );
+}
+
+function saveEntry() {
+  const t = $("txtEntry").value.trim();
+  if (!t) { toast("Saisissez d'abord l'événement."); $("txtEntry").focus(); return; }
+  if (!state.settings.auteur) { openSettings(true); return; }
+  const e = addEntry(t, "note");
+  $("txtEntry").value = ""; setDraft("");
+  render();
+  toast("Enregistré à " + fmtTime(e.t));
+}
+
+function rectify(n) {
+  const orig = state.active.entrees[n - 1];
+  openSheet(
+    "<h3>Rectifier l'entrée n° " + n + "</h3>" +
+    '<p class="muted small">Saisie à ' + fmtTime(orig.t) + " par " + esc(orig.auteur) + ". Elle restera visible ; la correction est ajoutée à la suite avec l'heure actuelle.</p>" +
+    '<div class="quote">' + esc(orig.texte) + "</div>" +
+    '<div class="field"><label for="rt">Correction</label><textarea id="rt" placeholder="Ex. : il s\'agissait de la salle 112 et non 121."></textarea></div>' +
+    '<div class="row"><button class="btn btn-ghost" id="cancel">Annuler</button><button class="btn btn-navy" id="ok">Ajouter la correction</button></div>',
+    (s) => {
+      setTimeout(() => s.querySelector("#rt").focus(), 100);
+      s.querySelector("#cancel").onclick = closeSheet;
+      s.querySelector("#ok").onclick = () => {
+        const v = s.querySelector("#rt").value.trim();
+        if (!v) { s.querySelector("#rt").focus(); return; }
+        addEntry(v, "rectif", n); closeSheet(); render(); toast("Rectificatif enregistré");
+      };
+    }
+  );
+}
+
+function closeCrisis() {
+  openSheet(
+    "<h3>Clôturer la main courante ?</h3>" +
+    '<p>Une entrée de clôture sera ajoutée avec l\'heure actuelle. Plus aucune saisie ne sera possible ensuite.</p>' +
+    '<div class="field"><label for="cl">Message de clôture (facultatif)</label><textarea id="cl" placeholder="Ex. : fin de l\'alerte confirmée par la préfecture, retour à la normale."></textarea></div>' +
+    '<div class="row"><button class="btn btn-ghost" id="cancel">Annuler</button><button class="btn btn-red" id="ok">Clôturer</button></div>',
+    (s) => {
+      s.querySelector("#cancel").onclick = closeSheet;
+      s.querySelector("#ok").onclick = () => {
+        const pending = $("txtEntry").value.trim();
+        if (pending) addEntry(pending, "note");
+        const msg = s.querySelector("#cl").value.trim();
+        const e = addEntry("Clôture de la main courante. Fin de la cellule de crise." + (msg ? " " + msg : ""), "cloture");
+        const done = state.active; done.fin = e.t;
+        state.archives.push(done); state.active = null;
+        setDraft(""); $("txtEntry").value = "";
+        persist(); closeSheet(); render();
+        sendReport(done, true);
+      };
+    }
+  );
+}
+
+function openSettings(first) {
+  const st = state.settings;
+  const isOther = st.auteur && !ROLES.includes(st.auteur);
+  openSheet(
+    "<h3>" + (first ? "Qui utilise cet appareil ?" : "Réglages") + "</h3>" +
+    (first ? '<p class="muted">Votre fonction apparaîtra à côté de chaque saisie et dans le rapport.</p>' : "") +
+    '<div class="field"><label>Saisi par</label><div class="chips" id="roles">' +
+    ROLES.concat(["Autre"]).map((r) => '<button type="button" data-r="' + esc(r) + '" class="' +
+      ((r === st.auteur || (r === "Autre" && isOther)) ? "on" : "") + '">' + esc(r) + "</button>").join("") +
+    '</div><input id="other" class="' + (isOther ? "" : "hidden") + '" style="margin-top:8px" placeholder="Nom ou fonction" value="' + (isOther ? esc(st.auteur) : "") + '"></div>' +
+    (first ? "" :
+      '<div class="field"><label for="mail">Adresse électronique du collège (destinataire des rapports)</label><input id="mail" type="email" inputmode="email" autocapitalize="off" autocorrect="off" placeholder="ce.068xxxxx@ac-strasbourg.fr" value="' + esc(st.email) + '"></div>' +
+      '<div class="field"><label for="etab">Nom de l\'établissement (en-tête du rapport)</label><input id="etab" value="' + esc(st.etab) + '"></div>' +
+      '<p class="muted small">Les données sont enregistrées uniquement sur cet appareil. Rien n\'est envoyé sur Internet, sauf le rapport PDF quand vous l\'envoyez vous-même.</p>') +
+    '<div class="row">' + (first ? "" : '<button class="btn btn-ghost" id="cancel">Annuler</button>') + '<button class="btn btn-navy" id="ok">Valider</button></div>',
+    (s) => {
+      let role = isOther ? "Autre" : st.auteur;
+      const other = s.querySelector("#other");
+      if (first) s.parentNode.dataset.locked = "1";
+      s.querySelector("#roles").addEventListener("click", (ev) => {
+        const b = ev.target.closest("button"); if (!b) return;
+        s.querySelectorAll("#roles button").forEach((x) => x.classList.remove("on"));
+        b.classList.add("on"); role = b.dataset.r;
+        other.classList.toggle("hidden", role !== "Autre"); if (role === "Autre") other.focus();
+      });
+      const c = s.querySelector("#cancel"); if (c) c.onclick = closeSheet;
+      s.querySelector("#ok").onclick = () => {
+        const auteur = role === "Autre" ? other.value.trim() : role;
+        if (!auteur) { toast("Choisissez qui saisit sur cet appareil."); return; }
+        st.auteur = auteur;
+        if (!first) {
+          st.email = s.querySelector("#mail").value.trim();
+          st.etab = s.querySelector("#etab").value.trim() || DEFAULT_ETAB;
+        }
+        persist(); closeSheet(); render();
+      };
+    }
+  );
+}
+
+/* ---------- Rapport PDF ---------- */
+// Les polices standard du PDF couvrent le jeu de caractères Windows-1252 (accents français compris).
+const CP1252_EXTRA = "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ";
+function clean(s) {
+  return String(s || "").normalize("NFC")
+    .replace(/[    ]/g, " ")
+    .replace(/[‐‑‒]/g, "-")
+    .replace(/…/g, "...")
+    .replace(/[^\n\t\x20-\x7E¡-ÿ]/g, (c) => CP1252_EXTRA.includes(c) ? c : "")
+    .replace(/[ \t]+\n/g, "\n");
+}
+function slug(s) {
+  return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+}
+
+function buildPdf(mc) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const st = state.settings;
+  const M = 14, W = 210;
+  const now = new Date().toISOString();
+  const navy = [27, 42, 74], red = [200, 52, 45];
+
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(...navy);
+  doc.text(clean(st.etab), M, 17);
+  doc.setFontSize(17); doc.setTextColor(...red);
+  doc.text("MAIN COURANTE – CELLULE DE CRISE", M, 26);
+  doc.setDrawColor(...red); doc.setLineWidth(0.6); doc.line(M, 29, W - M, 29);
+
+  const closed = !!mc.fin;
+  const info = [
+    ["Événement", mc.titre],
+    ["Ouverture", fmtLongDate(mc.debut) + " à " + fmtTime(mc.debut)],
+    ["Clôture", closed ? fmtLongDate(mc.fin) + " à " + fmtTime(mc.fin) : "Crise en cours – rapport d'étape"],
+    ["Durée", fmtDurShort((closed ? new Date(mc.fin) : new Date()) - new Date(mc.debut))],
+    ["Rédacteurs", Array.from(new Set(mc.entrees.map((e) => e.auteur))).join(", ")],
+    ["Nombre d'entrées", String(mc.entrees.length)],
+    ["Rapport généré", fmtDate(now) + " à " + fmtTime(now) + " par " + (st.auteur || "—")]
+  ].map(([k, v]) => [clean(k), clean(v)]);
+
+  doc.autoTable({
+    startY: 33, body: info, theme: "plain", margin: { left: M, right: M },
+    styles: { font: "helvetica", fontSize: 10, cellPadding: { top: 1.2, bottom: 1.2, left: 0, right: 2 }, textColor: [24, 32, 46] },
+    columnStyles: { 0: { cellWidth: 38, fontStyle: "bold", textColor: navy } }
+  });
+
+  const body = mc.entrees.map((e, i) => {
+    let txt = e.texte;
+    if (e.kind === "rectif") txt = "[Rectificatif de l'entrée n° " + e.ref + "] " + txt;
+    return [String(i + 1), fmtDate(e.t), fmtTime(e.t), clean(e.auteur), clean(txt)];
+  });
+  const kinds = mc.entrees.map((e) => e.kind);
+
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 6,
+    head: [["N°", "Date", "Heure", "Saisi par", clean("Événement / décision / information")]],
+    body, theme: "grid", margin: { left: M, right: M, top: 22, bottom: 18 },
+    styles: { font: "helvetica", fontSize: 9.5, cellPadding: 2, valign: "top", lineColor: [210, 215, 224], lineWidth: 0.2, textColor: [24, 32, 46], overflow: "linebreak" },
+    headStyles: { fillColor: navy, textColor: 255, fontStyle: "bold", fontSize: 9.5 },
+    alternateRowStyles: { fillColor: [246, 248, 251] },
+    columnStyles: { 0: { cellWidth: 10, halign: "center" }, 1: { cellWidth: 21 }, 2: { cellWidth: 17, fontStyle: "bold" }, 3: { cellWidth: 30 }, 4: { cellWidth: "auto" } },
+    didParseCell: (d) => {
+      if (d.section !== "body") return;
+      const k = kinds[d.row.index];
+      if (k === "ouverture" || k === "cloture") { d.cell.styles.fontStyle = "bold"; d.cell.styles.fillColor = [253, 236, 234]; }
+      if (k === "rectif" && d.column.index === 4) d.cell.styles.fontStyle = "italic";
+    },
+    didDrawPage: (d) => {
+      if (d.pageNumber > 1) {
+        doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(...navy);
+        doc.text(clean("Main courante – " + mc.titre + " – " + fmtDate(mc.debut)), M, 13);
+      }
+    }
+  });
+
+  // Zone de visa
+  let y = doc.lastAutoTable.finalY + 10;
+  if (y > 297 - 50) { doc.addPage(); y = 25; }
+  doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(...navy);
+  doc.text(clean("Visa du chef d'établissement"), M, y);
+  doc.setDrawColor(190, 196, 206); doc.setLineWidth(0.3);
+  doc.rect(M, y + 3, 85, 26);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8.5); doc.setTextColor(93, 103, 121);
+  doc.text(clean("Date, nom et signature"), M + 2, y + 8);
+
+  // Pied de page
+  const n = doc.getNumberOfPages();
+  for (let p = 1; p <= n; p++) {
+    doc.setPage(p);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(120, 128, 142);
+    doc.text(clean("Document confidentiel – main courante horodatée automatiquement lors de chaque saisie"), M, 289);
+    doc.text("Page " + p + " / " + n, W - M, 289, { align: "right" });
+  }
+
+  const d = new Date(mc.debut);
+  const filename = "Main-courante_" + d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "_" +
+    pad(d.getHours()) + "h" + pad(d.getMinutes()) + "_" + slug(mc.type || "crise") + (mc.fin ? "" : "_etape") + ".pdf";
+  return { blob: doc.output("blob"), filename };
+}
+
+/* ---------- Envoi ---------- */
+let downloadsNS = null; // disponible seulement dans l'aperçu Claude
+if (window.claude && typeof window.claude.use === "function") {
+  window.claude.use("downloads").then((ns) => { downloadsNS = ns; }).catch(() => {});
+}
+
+function canShareFiles() {
+  try { return !!(navigator.canShare && navigator.canShare({ files: [new File(["x"], "t.pdf", { type: "application/pdf" })] })); }
+  catch (e) { return false; }
+}
+
+async function deliver(mc) {
+  const { blob, filename } = buildPdf(mc);
+  const email = state.settings.email;
+  const subject = "Main courante – " + mc.titre + " – " + fmtDate(mc.debut);
+  // Copie de l'adresse du collège, pour la coller dans le champ « À » de Mail.
+  if (email && navigator.clipboard) navigator.clipboard.writeText(email).catch(() => {});
+
+  if (downloadsNS) {
+    try { await downloadsNS.save({ filename, data: blob }); return "ok"; }
+    catch (e) { if (e && e.code === "declined") return "cancel"; }
+  }
+  if (canShareFiles()) {
+    const file = new File([blob], filename, { type: "application/pdf" });
+    try {
+      await navigator.share({ files: [file], title: subject,
+        text: "Veuillez trouver ci-joint le rapport de la main courante de la cellule de crise.\n" + subject });
+      return "ok";
+    } catch (e) {
+      if (e && e.name === "AbortError") return "cancel";
+      if (e && e.name === "NotAllowedError") return "retry";
+    }
+  }
+  // Ordinateur ou navigateur sans partage : téléchargement du PDF.
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return "download";
+}
+
+function sendReport(mc, justClosed) {
+  const email = state.settings.email;
+  const subject = "Main courante – " + mc.titre + " – " + fmtDate(mc.debut);
+  const mailto = email ? "mailto:" + email + "?subject=" + encodeURIComponent(subject) +
+    "&body=" + encodeURIComponent("Rapport de main courante en pièce jointe.") : "";
+  openSheet(
+    "<h3>" + (justClosed ? "Main courante clôturée" : mc.fin ? "Rapport PDF" : "Rapport d'étape (PDF)") + "</h3>" +
+    '<p class="muted">' + esc(mc.titre) + " · " + mc.entrees.length + " entrées</p>" +
+    (email
+      ? '<p class="small" style="margin-bottom:4px">Destinataire :</p><div class="addr"><code>' + esc(email) + '</code><button class="btn btn-ghost btn-sm" id="copy">Copier</button></div>'
+      : '<div class="banner banner-warn">Aucune adresse du collège n\'est enregistrée. <button class="linkbtn" id="setMail">L\'ajouter dans les réglages</button></div>') +
+    '<ol class="steps small"><li>Touchez <b>Envoyer le rapport</b> : le PDF est créé et l\'adresse du collège est copiée.</li>' +
+    "<li>Dans le menu qui s'ouvre, choisissez <b>Mail</b>.</li>" +
+    "<li>Dans le champ <b>À</b>, collez l'adresse (appui long → Coller), puis envoyez.</li></ol>" +
+    '<div class="row"><button class="btn btn-ghost" id="later">' + (justClosed ? "Plus tard" : "Fermer") + '</button><button class="btn btn-red" id="send">Envoyer le rapport</button></div>' +
+    (mailto ? '<p class="muted small" style="margin-top:14px">Sans menu de partage ? <a href="' + esc(mailto) + '">Ouvrir un message vers ' + esc(email) + "</a> et joignez-y le PDF.</p>" : ""),
+    (s) => {
+      s.querySelector("#later").onclick = closeSheet;
+      const c = s.querySelector("#copy");
+      if (c) c.onclick = () => { navigator.clipboard && navigator.clipboard.writeText(email).then(() => toast("Adresse copiée"), () => toast("Copie impossible : sélectionnez l'adresse")); };
+      const sm = s.querySelector("#setMail");
+      if (sm) sm.onclick = () => openSettings(false);
+      s.querySelector("#send").onclick = async () => {
+        const btn = s.querySelector("#send");
+        btn.disabled = true; btn.textContent = "Création du PDF…";
+        let r;
+        try { r = await deliver(mc); }
+        catch (e) { r = "error"; }
+        btn.disabled = false; btn.textContent = "Envoyer le rapport";
+        if (r === "ok") toast("Rapport transmis au menu de partage");
+        else if (r === "download") toast("PDF téléchargé : joignez-le à un courriel");
+        else if (r === "retry") { btn.textContent = "Ouvrir le menu de partage"; toast("Touchez à nouveau le bouton"); }
+        else if (r === "error") toast("Impossible de créer le PDF");
+      };
+    }
+  );
+}
+
+function deleteArchive(id) {
+  const m = state.archives.find((x) => x.id === id); if (!m) return;
+  openSheet(
+    "<h3>Supprimer cette main courante ?</h3>" +
+    "<p>« " + esc(m.titre) + " » du " + fmtDate(m.debut) + ". Elle sera effacée définitivement de cet appareil. Vérifiez que le rapport PDF a bien été envoyé.</p>" +
+    '<div class="row"><button class="btn btn-ghost" id="cancel">Annuler</button><button class="btn btn-red" id="ok">Supprimer</button></div>',
+    (s) => {
+      s.querySelector("#cancel").onclick = closeSheet;
+      s.querySelector("#ok").onclick = () => {
+        state.archives = state.archives.filter((x) => x.id !== id);
+        persist(); closeSheet(); render(); toast("Supprimée");
+      };
+    }
+  );
+}
+
+/* ---------- Événements ---------- */
+$("btnOpen").onclick = () => { if (!state.settings.auteur) openSettings(true); else openCrisis(); };
+$("btnSave").onclick = saveEntry;
+$("btnWho").onclick = () => openSettings(false);
+$("btnSettings").onclick = () => openSettings(false);
+$("btnReport").onclick = () => sendReport(state.active, false);
+$("btnClose").onclick = closeCrisis;
+$("txtEntry").addEventListener("input", (e) => setDraft(e.target.value));
+$("entryList").addEventListener("click", (e) => { const b = e.target.closest("[data-rect]"); if (b) rectify(+b.dataset.rect); });
+$("archList").addEventListener("click", (e) => {
+  const s = e.target.closest("[data-send]"); if (s) { const m = state.archives.find((x) => x.id === s.dataset.send); if (m) sendReport(m, false); return; }
+  const d = e.target.closest("[data-del]"); if (d) deleteArchive(d.dataset.del);
+});
+
+function showStorageBanner() { $("bannerStorage").classList.remove("hidden"); }
+if (!storageOk) showStorageBanner();
+
+// Invitation à installer (iPhone, hors application installée, hors aperçu Claude)
+const standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+const inClaude = !!(window.claude && window.claude.use);
+if (/iPhone|iPad|iPod/.test(navigator.userAgent) && !standalone && !inClaude) $("bannerInstall").classList.remove("hidden");
+
+// Fonctionnement hors ligne
+if ("serviceWorker" in navigator && !inClaude) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+render();
+if (state.active) $("txtEntry").value = getDraft();
+if (!state.settings.auteur) openSettings(true);
+
+// Accès de test (aperçu)
+window.__mc = { state, buildPdf };
+})();
+</script>
+</body>
+</html>
